@@ -9,6 +9,13 @@ class SongPage extends StatelessWidget {
   final List<SongModel> data;
   const SongPage({super.key, required this.data});
 
+  String formatDuration(Duration d) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(d.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(d.inSeconds.remainder(60));
+    return "$twoDigitMinutes:$twoDigitSeconds";
+  }
+
   @override
   Widget build(BuildContext context) {
     var controller = Get.find<PlayerController>();
@@ -88,20 +95,24 @@ class SongPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                    data[controller.playIndex.value]
-                                        .displayNameWOExt,
-                                    style: ourStyle(
-                                        color: whiteColor,
-                                        family: bold,
-                                        size: 24)),
+                                  data[controller.playIndex.value]
+                                      .displayNameWOExt,
+                                  style: ourStyle(
+                                      color: whiteColor,
+                                      family: bold,
+                                      size: 24),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                                 Text(
-                                    data[controller.playIndex.value]
-                                        .artist
-                                        .toString(),
-                                    style: ourStyle(
-                                        color: whiteColor,
-                                        size: 20,
-                                        family: regular)),
+                                  data[controller.playIndex.value]
+                                      .artist
+                                      .toString(),
+                                  style: ourStyle(
+                                      color: whiteColor,
+                                      size: 20,
+                                      family: regular),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ],
                             ),
                           ],
@@ -122,7 +133,7 @@ class SongPage extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             // Start Time
-                            Text(controller.position.value.toString(),
+                            Text(formatDuration(controller.position.value),
                                 style: ourStyle(
                                     color: whiteColor, family: regular)),
 
@@ -161,7 +172,7 @@ class SongPage extends StatelessWidget {
                             ),
 
                             // End Time
-                            Text(controller.duration.value.toString(),
+                            Text(formatDuration(controller.duration.value),
                                 style: ourStyle(
                                     color: whiteColor, family: regular)),
                           ],
@@ -200,12 +211,24 @@ class SongPage extends StatelessWidget {
                   children: [
                     // Skip to Previous
                     IconButton(
+                      // When the IconButton is pressed, this function is called
                       onPressed: () {
+                        // Calculate the index of the previous song
                         int prevIndex = controller.playIndex.value - 1;
+                        // If the previous index is less than 0, set it to the last song in the list
                         if (prevIndex < 0) {
                           prevIndex = data.length - 1;
                         }
-                        controller.playSong(data[prevIndex].uri, prevIndex);
+                        // If the current position of the song is more than 3 seconds
+                        if (controller.position.value.inSeconds > 3) {
+                          // Restart the current song
+                          controller.playSong(
+                              data[controller.playIndex.value].uri,
+                              controller.playIndex.value);
+                        } else {
+                          // Play the previous song
+                          controller.playSong(data[prevIndex].uri, prevIndex);
+                        }
                       },
                       icon: const Icon(
                         Icons.skip_previous_rounded,
@@ -244,10 +267,7 @@ class SongPage extends StatelessWidget {
                     IconButton(
                       onPressed: () {
                         int nextIndex;
-                        if (controller.repeatMode.value == 'song') {
-                          // Repeat the current song
-                          nextIndex = controller.playIndex.value;
-                        } else if (controller.isShuffled.value) {
+                        if (controller.isShuffled.value) {
                           // Play the next song based on the shuffled indices
                           nextIndex = controller.shuffledIndices[
                               (controller.playIndex.value + 1) %
