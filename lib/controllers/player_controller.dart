@@ -29,12 +29,15 @@ class PlayerController extends GetxController {
     super.onInit();
     checkPermission();
 
-    // Listen to the processing state stream
-    audioPlayer.processingStateStream.listen((state) {
+    // Listen to the position and duration streams
+    audioPlayer.positionStream.listen((p) {
+      position.value = p.toString().split('.')[0];
+      value.value = p.inSeconds.toDouble();
+
       // If the song has finished playing
-      if (state == ProcessingState.completed) {
+      if (value.value >= max.value) {
         // Play the next song
-        playNextSong(songs); 
+        playNextSong(songs);
       }
     });
   }
@@ -43,10 +46,6 @@ class PlayerController extends GetxController {
     audioPlayer.durationStream.listen((d) {
       duration.value = d.toString().split('.')[0];
       max.value = d!.inSeconds.toDouble();
-    });
-    audioPlayer.positionStream.listen((p) {
-      position.value = p.toString().split('.')[0];
-      value.value = p.inSeconds.toDouble();
     });
   }
 
@@ -114,6 +113,12 @@ class PlayerController extends GetxController {
         nextIndex = data.length - 1;
       }
     }
-    playSong(data[nextIndex].uri, nextIndex);
+
+    // If repeat mode is 'none' and the song list is over, stop the player
+    if (repeatMode.value == 'none' && nextIndex == 0) {
+      audioPlayer.stop();
+    } else {
+      playSong(data[nextIndex].uri, nextIndex);
+    }
   }
 }
