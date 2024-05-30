@@ -22,7 +22,7 @@ class PlayerController extends GetxController {
 
   var repeatMode = 'none'.obs;
 
-  List<SongModel> songs = []; // Add this line
+  List<SongModel> songs = [];
 
   @override
   void onInit() {
@@ -34,7 +34,7 @@ class PlayerController extends GetxController {
       // If the song has finished playing
       if (state == ProcessingState.completed) {
         // Play the next song
-        playNextSong(songs); // Pass the songs list here
+        playNextSong(songs); 
       }
     });
   }
