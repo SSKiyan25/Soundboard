@@ -1,4 +1,4 @@
-# musicplayerv2
+# Soundboard
 
 A new Flutter project.
 
